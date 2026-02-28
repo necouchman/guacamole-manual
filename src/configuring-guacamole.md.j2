@@ -35,8 +35,12 @@ files:
   When using the Docker image, or if the `enable-environment-properties`
   property has been set to `true`, properties that would normally need to be
   provided through this file can be instead provided through environment
-  variables. Those environment variables are named by taking the property name,
-  transforming it to uppercase, and replacing all the dashes with underscores.
+  variables. Environment variables are derived from the property name by
+  converting it to uppercase and using underscores as separators. This includes
+  replacing dashes with underscores, inserting underscores between word and
+  number boundaries (for example, `oauth2-property` becomes `OAUTH_2_PROPERTY`),
+  and splitting camelCase into separate words (for example, `myURLProperty`
+  becomes `MY_URL_PROPERTY`).
 
 `logback.xml`
 : Guacamole uses a logging system called Logback for all messages. By
