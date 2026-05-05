@@ -593,7 +593,7 @@ parameter.
 :::{important}
 *The only clipboard encoding guaranteed to be supported by VNC servers is ISO
 8859-1.* You should only override the clipboard encoding using the
-`clipboard-encoding` parameter of you are absolutely positive your VNC server
+`clipboard-encoding` parameter if you are absolutely positive your VNC server
 supports other encodings.
 :::
 
@@ -629,6 +629,15 @@ supports other encodings.
     encoding for the VNC clipboard violates the VNC specification. This
     parameter value should only be used if you know your VNC server supports
     this encoding.
+
+  MacRoman
+  : Mac OS Roman - an Apple-specific encoding for Latin characters used by
+    classic Mac OS and still used by some macOS VNC servers, such as Screen
+    Sharing, for clipboard text. This encoding preserves many Western European
+    accented characters and punctuation, but it cannot represent characters
+    outside the MacRoman character set. Using this encoding for the VNC
+    clipboard violates the VNC specification. This parameter value should only
+    be used if you know your VNC server expects MacRoman clipboard data.
 
 (adding-vnc)=
 
@@ -2934,4 +2943,3 @@ the following options:
 
   This corresponds to the `server_key` parameter within the [`[ssl]` section of
   `guacd.conf`](guacd-conf-ssl).
-
