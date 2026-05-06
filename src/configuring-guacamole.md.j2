@@ -1941,6 +1941,36 @@ name.
   analogous to running {command}`kubectl exec`. When omitted, the behavior
   is analogous to running {command}`kubectl attach`.
 
+  Unlike SSH and telnet, Kubernetes does not provide a built-in way to
+  propagate the `TERM` environment variable to the remote process: it
+  exposes only stdin, stdout, and stderr. To allow the configured
+  [terminal-type](terminal-behavior) to be passed through, any occurrence of
+  `$TERM` in this parameter is replaced with the configured terminal type
+  when the session starts. This lets the user decide whether and how to
+  pass the terminal type to the executed command, for example:
+
+  ```
+  env TERM=$TERM /bin/bash
+  ```
+
+  On Windows containers, most applications ignore `TERM`; it is mainly used
+  by Unix-style tools.
+
+  Substitution only applies to the literal token `$TERM`; longer shell
+  variable names like `$TERMINAL` are left unchanged. Quoting and other
+  shell syntax are not interpreted; the command is split on whitespace into
+  separate arguments.
+
+  Attach mode (when `exec-command` is omitted) has no command line, so the
+  configured terminal type is not propagated automatically and must be set
+  manually within the session if needed.
+
+  Within the web interface, the label of the `terminal-type` field reflects
+  this distinction. When `exec-command` is specified, the label indicates
+  that the terminal type is available as `$TERM` within the command. When
+  `exec-command` is omitted, the label instead indicates that the terminal
+  type must be set manually within the session.
+
 (kubernetes-authentication)=
 
 #### Authentication and SSL/TLS
@@ -2355,8 +2385,28 @@ operate properly. The settings in this section control that behavior.
 
 `terminal-type`
 : This parameter sets the terminal emulator type string that is passed to
-  the server. This parameter is optional. If not specified, "`linux`" is used
-  as the terminal emulator type by default.
+  the server. The supported values are "`xterm`", "`xterm-256color`",
+  "`vt220`", "`vt100`", "`ansi`", and "`linux`". *This parameter is
+  optional.* If not specified, "`linux`" is used as the terminal emulator
+  type by default.
+
+  In addition to advertising the terminal type to the remote server, this
+  setting also controls the key sequences that Guacamole's terminal emulator
+  emits, ensuring that those sequences align with the expectations of the
+  configured `$TERM`. Regardless of the terminal type chosen, special keys
+  are modifier-aware: Shift, Alt, Ctrl, and Meta combinations are supported
+  for arrow keys, function keys, cursor editing keys, and keypad keys using
+  xterm-style CSI modifier encoding. This means that even older terminal
+  types like `ansi` and `vt100` gain support for modern keyboard behavior,
+  including modifier-aware arrow keys, function keys F1 through F12, and
+  cursor editing keys.
+
+  For non-`linux` terminal types, keyboard handling follows standard xterm
+  and VT-style behavior, with modified keys emitting consistent CSI
+  sequences. For the `linux` terminal type, legacy Linux console keycodes
+  are preserved for compatibility with `$TERM=linux`, including F1 through
+  F5 as well as Home and End, while still benefiting from the modifier-aware
+  extensions described above.
 
 (stdin-pipe)=
 
