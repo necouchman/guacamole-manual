@@ -357,6 +357,11 @@ as pressing the same buttons on a real keyboard, except that the operating
 system and browser will not intercept these keypresses; they will only be sent
 to the remote desktop.
 
+The on-screen {kbd}`Shift` key behaves like a physical {kbd}`Shift` key: it
+releases automatically after a character is typed, such as a letter, digit, or
+punctuation mark. {kbd}`Shift` remains active for non-typing keys, such as
+arrow keys or function keys, so combinations like {kbd}`Shift+Arrow` still work.
+
 (scaling-display)=
 
 Scaling the display
