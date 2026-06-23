@@ -874,6 +874,17 @@ are not configured, NLA-based connections will fail.
   on subsequent connections, the certificate will be checked to validate
   a match. This is similar to SSH client behavior.
 
+  :::{note}
+  When running guacd in Docker, the FreeRDP known-hosts file that backs this
+  feature is stored inside the container and will be lost if the container is
+  recreated. This creates a window for a man-in-the-middle attack on the next
+  connection. If you use `cert-tofu`, you should mount a persistent volume over
+  `/home/guacd/.config/freerdp` so that trusted fingerprints survive container
+  re-deployments. See
+  [Persisting RDP certificate trust when using cert-tofu](guacd-docker-rdp-cert-tofu)
+  in the Docker installation guide for details.
+  :::
+
 `cert-fingerprints`
 : A comma-separated list of certificate fingerprint and hash combinations
   that will be checked against upon connection. If the fingerprint and hash
