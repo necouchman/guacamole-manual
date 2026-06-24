@@ -28,6 +28,16 @@ separation of concerns. With the database separate from Guacamole and guacd,
 those containers can be freely destroyed and recreated at will. The only
 container which must persist data through upgrades is the database.
 
+:::{note}
+guacd is largely stateless, but there is one exception: when RDP connections
+are configured to use the `cert-tofu` security option, guacd stores trusted RDP
+server certificate fingerprints on disk. If you use `cert-tofu`, you must mount
+a persistent volume over `/home/guacd/.config/freerdp` to preserve those
+fingerprints across container re-deployments. See
+[Persisting RDP certificate trust when using cert-tofu](guacd-docker-rdp-cert-tofu)
+for details.
+:::
+
 (guacd-docker-image)=
 
 Running the guacd Docker image
@@ -87,6 +97,45 @@ $ docker run --name some-guacd -d -p 4822:4822 guacamole/guacd
 guacd will now be listening on port 4822, and Docker will expose this port on
 the same server hosting Docker. Other services, such as an instance of Tomcat
 running outside of Docker, will be able to connect to guacd directly.
+
+(guacd-docker-rdp-cert-tofu)=
+
+### Persisting RDP certificate trust when using cert-tofu
+
+When RDP connections are configured with the `cert-tofu` security option, guacd
+performs TOFU (Trust On First Use) certificate validation. The first time guacd
+connects to an RDP server it stores that server's certificate fingerprint in a
+FreeRDP known-hosts file at:
+
+```
+/home/guacd/.config/freerdp/known_hosts2
+```
+
+This file is stored only inside the container's writable layer. **If the
+container is recreated — for example, to upgrade guacd or to update the base
+image — the file is lost.** On the next connection, guacd will treat every RDP
+server as if it were being seen for the first time, silently accepting whatever
+certificate is presented. An attacker in a position to intercept or redirect
+traffic to the RDP server at that moment can exploit this window to carry out a
+man-in-the-middle attack, potentially compromising user credentials or hijacking
+active sessions.
+
+To eliminate this risk, mount a persistent volume over the FreeRDP configuration
+directory so that the known-hosts file survives container restarts and
+re-deployments:
+
+```console
+$ docker volume create guacd-freerdp
+$ docker run --network=some-network --name some-guacd \
+    -v guacd-freerdp:/home/guacd/.config/freerdp \
+    -d guacamole/guacd
+```
+
+With this volume in place, certificate fingerprints are written to the host and
+re-used across container lifecycles. When the guacd container is updated, the
+existing `known_hosts2` file is already present in the volume, so guacd will
+immediately detect any unexpected certificate change rather than silently
+accepting it.
 
 (guacamole-docker-image)=
 
