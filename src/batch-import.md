@@ -12,6 +12,32 @@ a list of connections to be imported.
 
 ![Batch Import Start](images/batch-import-start.png)
 
+Before importing, the following options are available:
+
+* **Replace/Update existing connections** - If checked, connections in the
+  import file that match the name and parent group of an existing connection
+  will replace that connection. If unchecked, such conflicts are reported as
+  errors.
+* **Reset permissions** - If checked, permissions for connections in the
+  import file are fully replaced with those specified in the file. If
+  unchecked, existing permissions are preserved and any permissions listed in
+  the file are added. This option is only available when
+  "Replace/Update existing connections" is checked.
+* **Automatically create groups** - If checked, any connection group paths
+  referenced by a connection's `group` field that do not already exist will
+  be created before the connections are imported, as will any users and user
+  groups listed in the file that do not already exist. Multi-level paths such as
+  `ROOT/Parent Group/Child Group` are created one level at a time, with each
+  parent group created before its children. If unchecked, every `group` path,
+  user, and user group referenced in the file must already exist; otherwise
+  the affected connection is reported as an error and is not imported. Connection
+  group paths are resolved only from the `group` field; a `parentIdentifier`
+  must still refer to an existing connection group.
+
+If group creation fails partway through an import, any groups that were
+already created remain in place and the import is aborted. Re-importing the
+same file is safe: existing groups are detected and skipped.
+
 (batch-import-success)=
 Success
 -----------------
@@ -39,10 +65,12 @@ Three file types are supported for connection import: CSV, JSON, and YAML.
 The same data may be specified by each file type. This must include the
 connection name and protocol. Optionally, a connection group location, a list
 of users and/or user groups to grant access, connection parameters, or connection
-protocols may also be specified. Any users or user groups that do not exist in
-the current data source will be automatically created. Note that any existing
-connection permissions will not be removed for updated connections, unless
-"Reset permissions" is checked.
+protocols may also be specified. Connection groups referenced by the `group`
+field, and any users or user groups listed for access grants, must already
+exist in the current data source unless "Automatically create groups" is
+checked on the import screen. Note that any existing connection permissions
+will not be removed for updated connections, unless "Reset permissions" is
+checked.
 
 This same file format information is available within the webapp, at the
 "View Format Tips" link.
